@@ -1,0 +1,59 @@
+<div class="toolbar" role="toolbar" aria-label="Herramientas de anotación">
+  <div class="toolbar__scroll">
+    @for (b of buttons; track b.tool) {
+      <button
+        type="button"
+        class="tool"
+        [class.is-active]="tool() === b.tool"
+        [attr.aria-pressed]="tool() === b.tool"
+        [title]="b.label + ' (' + b.key + ') — ' + b.hint"
+        (click)="select(b.tool)"
+      >
+        <span class="tool__icon" [attr.data-icon]="b.icon" aria-hidden="true"></span>
+        <span class="u-visually-hidden">{{ b.label }}</span>
+      </button>
+    }
+
+    <span class="toolbar__sep" aria-hidden="true"></span>
+
+    <button
+      type="button"
+      class="toolbar__chain"
+      [class.is-active]="sticky()"
+      [attr.aria-pressed]="sticky()"
+      title="Mantener la herramienta activa tras crear una marca"
+      (click)="toggleSticky()"
+    >
+      Encadenar
+    </button>
+
+    @if (drawingPolygon()) {
+      <button type="button" class="btn btn--primary btn--small" (click)="closePolygon()">
+        Cerrar polígono
+      </button>
+    }
+  </div>
+
+  <div class="toolbar__end">
+    <button
+      type="button"
+      class="btn btn--icon"
+      [disabled]="!canUndo()"
+      [title]="undoTitle()"
+      (click)="undo()"
+    >
+      <span aria-hidden="true">↺</span>
+      <span class="u-visually-hidden">Deshacer</span>
+    </button>
+    <button
+      type="button"
+      class="btn btn--icon"
+      [disabled]="!canRedo()"
+      title="Rehacer"
+      (click)="redo()"
+    >
+      <span aria-hidden="true">↻</span>
+      <span class="u-visually-hidden">Rehacer</span>
+    </button>
+  </div>
+</div>

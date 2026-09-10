@@ -1,0 +1,30 @@
+@for (h of handles(); track h.key) {
+  <svg:g
+    class="handle"
+    [attr.transform]="h.transform"
+    [attr.data-ann-id]="annId()"
+    data-role="vertex"
+    [attr.data-vkind]="h.vkind"
+    [attr.data-vindex]="h.vindex"
+    [attr.data-vcorner]="h.vcorner"
+    [attr.data-vend]="h.vend"
+  >
+    <svg:title>{{ h.label }}</svg:title>
+    <svg:rect
+      class="handle__hit"
+      [attr.x]="-screen.handleHit / 2"
+      [attr.y]="-screen.handleHit / 2"
+      [attr.width]="screen.handleHit"
+      [attr.height]="screen.handleHit"
+      fill="transparent"
+    />
+    <svg:rect
+      class="handle__box"
+      [attr.x]="-screen.handleSize / 2"
+      [attr.y]="-screen.handleSize / 2"
+      [attr.width]="screen.handleSize"
+      [attr.height]="screen.handleSize"
+      rx="1.5"
+    />
+  </svg:g>
+}

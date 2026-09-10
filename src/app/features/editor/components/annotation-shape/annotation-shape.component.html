@@ -1,0 +1,31 @@
+@if (kind() !== 'pin') {
+  @if (!preview()) {
+    <!-- Zona de impacto invisible y generosa (18 px CSS), independiente del grosor visible. -->
+    <svg:path
+      class="mark__hit"
+      [attr.d]="shapePath()"
+      [attr.data-ann-id]="annId()"
+      data-role="shape"
+      [attr.fill]="kind() === 'arrow' ? 'none' : 'transparent'"
+      stroke="transparent"
+      [attr.stroke-width]="screen.hitStroke"
+      vector-effect="non-scaling-stroke"
+    />
+  }
+
+  @if (kind() === 'polygon') {
+    <svg:path class="mark__fill" [attr.d]="shapePath()" />
+  }
+
+  <!-- Triple trazo: negro ancho -> blanco medio -> acento fino. -->
+  <svg:path class="mark__halo" [attr.d]="shapePath()" vector-effect="non-scaling-stroke" />
+  <svg:path class="mark__mid" [attr.d]="shapePath()" vector-effect="non-scaling-stroke" />
+  <svg:path class="mark__core" [attr.d]="shapePath()" vector-effect="non-scaling-stroke" />
+
+  @if (kind() === 'arrow') {
+    <svg:g [attr.transform]="arrowHeadTransform()">
+      <svg:path class="head__halo" [attr.d]="arrowHeadPath" />
+      <svg:path class="head__core" [attr.d]="arrowHeadPath" />
+    </svg:g>
+  }
+}

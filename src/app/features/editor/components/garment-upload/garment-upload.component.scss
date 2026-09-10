@@ -1,0 +1,83 @@
+:host {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+/* Todo el lienzo acepta el arrastre aunque lo visible sea una pastilla. */
+:host(.is-dragging) {
+  outline: 1.5px dashed var(--color-border-strong);
+  outline-offset: -6px;
+}
+
+.up {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+
+  &__chip,
+  &__slot,
+  &__close {
+    min-height: var(--tap);
+    padding: 4px 10px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--color-text);
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 999px;
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-text);
+    }
+  }
+
+  &__open {
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+  }
+
+  &__slot {
+    display: inline-flex;
+    align-items: center;
+
+    &:focus-within {
+      outline: 2px solid var(--color-text);
+      outline-offset: 1px;
+    }
+
+    &.is-filled {
+      color: var(--color-text-muted);
+      border-style: dashed;
+    }
+
+    &--both {
+      color: var(--color-text-inverse);
+      background: var(--color-text);
+      border-color: var(--color-text);
+    }
+  }
+
+  &__close {
+    min-width: var(--tap);
+    padding: 4px 6px;
+    color: var(--color-text-muted);
+    border-color: transparent;
+    background: transparent;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 10px;
+    color: var(--color-text-muted);
+  }
+}
+
+:host(.is-dragging) .up__hint {
+  color: var(--color-text);
+}

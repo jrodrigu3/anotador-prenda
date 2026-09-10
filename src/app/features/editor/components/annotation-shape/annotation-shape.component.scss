@@ -1,0 +1,84 @@
+:host {
+  --mark-accent: var(--mark-pin);
+}
+
+:host(.mark--arrow) {
+  --mark-accent: var(--mark-arrow);
+}
+
+:host(.mark--rect) {
+  --mark-accent: var(--mark-rect);
+}
+
+:host(.mark--polygon) {
+  --mark-accent: var(--mark-polygon);
+}
+
+:host(.is-draft) {
+  --mark-accent: #9c9c9c;
+}
+
+:host(.is-preview) {
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.mark__hit {
+  cursor: pointer;
+}
+
+.mark__halo,
+.mark__mid,
+.mark__core {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mark__halo {
+  stroke: #000;
+  stroke-width: 7;
+}
+
+.mark__mid {
+  stroke: #fff;
+  stroke-width: 4.5;
+}
+
+.mark__core {
+  stroke: var(--mark-accent);
+  stroke-width: 2.2;
+}
+
+.mark__fill {
+  fill: color-mix(in srgb, var(--mark-accent) 14%, transparent);
+  stroke: none;
+  pointer-events: none;
+}
+
+.head__halo {
+  fill: #000;
+  stroke: #fff;
+  stroke-width: 3;
+  paint-order: stroke fill;
+}
+
+.head__core {
+  fill: var(--mark-accent);
+}
+
+:host(.is-selected) .mark__core {
+  stroke-width: 3.6;
+}
+
+:host(.is-preview) .mark__core {
+  stroke-dasharray: 7 5;
+}
+
+@media (forced-colors: active) {
+  .mark__halo,
+  .mark__mid,
+  .mark__core {
+    stroke: CanvasText;
+  }
+}

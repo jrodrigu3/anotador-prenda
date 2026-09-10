@@ -1,0 +1,73 @@
+:host {
+  display: block;
+  min-height: 0;
+  height: 100%;
+}
+
+.canvas {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-surface);
+  place-items: stretch;
+
+  &__svg {
+    /* Posicionamiento absoluto a propósito: un <svg> con `height: 100%` dentro de un
+       contenedor de altura automática toma su relación de aspecto INTRÍNSECA del viewBox
+       y realimenta la altura del contenedor. El encuadre entra en bucle y nunca cuadra. */
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+
+    /* Sin esto, en trackpad y móvil el gesto hace scroll de la página y nunca
+       llega a los handlers. */
+    touch-action: none;
+    user-select: none;
+    outline: none;
+
+    &.is-selecting {
+      cursor: default;
+    }
+
+    &.is-drawing {
+      cursor: crosshair;
+    }
+
+    &.is-panning {
+      cursor: grab;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-text);
+      outline-offset: -2px;
+    }
+  }
+
+  &__image {
+    image-rendering: auto;
+  }
+}
+
+.crosshair {
+  &__halo {
+    stroke: #000;
+    stroke-width: 5;
+    fill: none;
+  }
+
+  &__core {
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+    fill: none;
+  }
+
+  &__ring {
+    fill: none;
+    stroke: var(--mark-pin);
+    stroke-width: 2.4;
+  }
+}

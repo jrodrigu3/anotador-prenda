@@ -1,0 +1,121 @@
+:host {
+  --mark-accent: var(--mark-pin);
+}
+
+:host(.badge-group--arrow) {
+  --mark-accent: var(--mark-arrow);
+}
+
+:host(.badge-group--rect) {
+  --mark-accent: var(--mark-rect);
+}
+
+:host(.badge-group--polygon) {
+  --mark-accent: var(--mark-polygon);
+}
+
+:host(.is-draft) {
+  --mark-accent: #9c9c9c;
+}
+
+:host(.is-preview) {
+  pointer-events: none;
+}
+
+.ret__hit {
+  cursor: pointer;
+}
+
+.ret__halo,
+.ret__mid,
+.ret__core {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.ret__halo {
+  stroke: #000;
+  stroke-width: 6;
+}
+
+.ret__mid {
+  stroke: #fff;
+  stroke-width: 3.6;
+}
+
+.ret__core {
+  stroke: var(--mark-accent);
+  stroke-width: 1.8;
+}
+
+.mark__leader {
+  stroke: #000;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.badge {
+  cursor: pointer;
+}
+
+.badge__plate {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2.6;
+}
+
+.badge__num {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  fill: #000;
+  user-select: none;
+}
+
+:host(.is-selected) {
+  .ret__core {
+    stroke-width: 3;
+  }
+
+  .badge__plate {
+    fill: var(--mark-accent);
+    stroke-width: 3.4;
+  }
+
+  .badge__num {
+    fill: #fff;
+  }
+}
+
+/* El `outline` sobre elementos SVG se pinta de forma inconsistente entre motores:
+   se dibuja un anillo explícito. */
+.badge:focus-visible {
+  outline: none;
+
+  .badge__plate {
+    stroke: var(--color-brand);
+    stroke-dasharray: 4 3;
+    stroke-width: 3.8;
+  }
+}
+
+@media (forced-colors: active) {
+  .ret__halo,
+  .ret__mid,
+  .ret__core,
+  .mark__leader {
+    stroke: CanvasText;
+  }
+
+  .badge__plate {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+
+  .badge__num {
+    fill: CanvasText;
+  }
+}

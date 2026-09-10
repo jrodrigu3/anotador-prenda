@@ -1,0 +1,44 @@
+<div class="up">
+  @if (!open()) {
+    <button type="button" class="up__chip" [disabled]="busy()" (click)="toggle()">
+      @if (busy()) {
+        Procesando…
+      } @else {
+        <span aria-hidden="true">＋</span> {{ complete() ? 'Cambiar foto' : 'Añadir fotos' }}
+      }
+    </button>
+  } @else {
+    <div class="up__open">
+      @for (slot of slots(); track slot.id) {
+        <label class="up__slot" [class.is-filled]="slot.filled">
+          {{ slot.label }}
+          <input
+            class="u-visually-hidden"
+            type="file"
+            accept="image/*"
+            [disabled]="busy()"
+            [attr.aria-label]="'Foto — ' + slot.label"
+            (change)="onPickSlot($event, slot.id)"
+          />
+        </label>
+      }
+      <label class="up__slot up__slot--both">
+        Las dos
+        <input
+          class="u-visually-hidden"
+          type="file"
+          accept="image/*"
+          multiple
+          [disabled]="busy()"
+          aria-label="Las dos fotos a la vez"
+          (change)="onPickBoth($event)"
+        />
+      </label>
+      <button type="button" class="up__close" (click)="toggle()" aria-label="Cerrar">
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+  }
+
+  <p class="up__hint">o suelta las fotos aquí</p>
+</div>

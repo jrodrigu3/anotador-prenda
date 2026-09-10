@@ -1,0 +1,119 @@
+<div class="canvas" #host>
+  @if (image()) {
+    <svg
+      #svg
+      class="canvas__svg"
+      [class]="cursorClass()"
+      [attr.viewBox]="viewport.viewBoxAttr()"
+      preserveAspectRatio="xMidYMid meet"
+      role="application"
+      tabindex="0"
+      aria-label="Lienzo de anotación"
+      [attr.aria-describedby]="helpId"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel()"
+      (lostpointercapture)="onPointerCancel()"
+      (contextmenu)="onContextMenu($event)"
+      (keydown)="onKeyDown($event)"
+      (focus)="onFocusCanvas()"
+    >
+      @if (imageUrl(); as url) {
+        <image
+          class="canvas__image"
+          [attr.href]="url"
+          x="0"
+          y="0"
+          [attr.width]="natural().w"
+          [attr.height]="natural().h"
+          pointer-events="none"
+        />
+      }
+
+      <!-- Capa 1: formas (rectángulos, polígonos, astas de flecha) -->
+      <g class="layer layer--shapes">
+        @for (m of shapeMarks(); track m.id) {
+          <g
+            appAnnotationShape
+            [geometry]="m.geometry"
+            [natural]="natural()"
+            [upp]="viewport.upp()"
+            [annId]="m.id"
+            [draft]="m.draft"
+            [selected]="m.id === store.selectedId()"
+          ></g>
+        }
+      </g>
+
+      <!-- Capa 2: mirillas e insignias, siempre por encima de cualquier forma -->
+      <g class="layer layer--badges">
+        @for (m of marks(); track m.id) {
+          <g
+            appAnnotationBadge
+            [geometry]="m.geometry"
+            [natural]="natural()"
+            [upp]="viewport.upp()"
+            [annId]="m.id"
+            [markNumber]="m.number"
+            [draft]="m.draft"
+            [selected]="m.id === store.selectedId()"
+            [focusable]="m.id === (store.focusedId() ?? marks()[0]?.id)"
+            [ariaText]="m.aria"
+            (keydown)="onBadgeKeyDown($event, m.id)"
+          ></g>
+        }
+      </g>
+
+      <!-- Capa 3: fantasma de la forma en curso. Nunca entra en el store ni en el historial. -->
+      @if (interaction.preview(); as ghost) {
+        <g class="layer layer--preview" pointer-events="none">
+          <g
+            appAnnotationShape
+            [geometry]="ghost"
+            [natural]="natural()"
+            [upp]="viewport.upp()"
+            [preview]="true"
+          ></g>
+          <g
+            appAnnotationBadge
+            [geometry]="ghost"
+            [natural]="natural()"
+            [upp]="viewport.upp()"
+            [preview]="true"
+          ></g>
+        </g>
+      }
+
+      <!-- Capa 4: tiradores de la selección -->
+      @if (selectedGeometry(); as sel) {
+        <g class="layer layer--handles">
+          <g
+            appSelectionHandles
+            [geometry]="sel"
+            [natural]="natural()"
+            [upp]="viewport.upp()"
+            [annId]="store.selectedId()!"
+          ></g>
+        </g>
+      }
+
+      <!-- Capa 5: cruz virtual para crear sin ratón -->
+      @if (crosshairVisible() && interaction.tool() !== 'select') {
+        <g class="crosshair" [attr.transform]="crosshairTransform()" pointer-events="none">
+          <path class="crosshair__halo" d="M -26 0 L 26 0 M 0 -26 L 0 26" />
+          <path class="crosshair__core" d="M -26 0 L 26 0 M 0 -26 L 0 26" />
+          <circle class="crosshair__ring" r="7" />
+        </g>
+      }
+    </svg>
+  }
+
+  <p [id]="helpId" class="u-visually-hidden">
+    Herramientas: V seleccionar, P alfiler, F flecha, R rectángulo, L lazo, H mano. Con una
+    herramienta de dibujo activa, las flechas del teclado mueven una cruz virtual y Enter coloca el
+    punto; mayúsculas multiplica el paso por diez y Alt lo divide. En el lazo, C cierra el polígono.
+    Escape cancela. Suprimir borra la marca seleccionada. Control o Comando más Z deshace. Más,
+    menos y cero controlan el zoom.
+  </p>
+</div>

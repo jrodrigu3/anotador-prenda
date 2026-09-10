@@ -1,0 +1,18 @@
+<div class="tabs" role="tablist" aria-label="Vista de la prenda">
+  @for (v of views(); track v.id) {
+    <button
+      type="button"
+      role="tab"
+      class="tabs__tab"
+      [class.is-active]="current() === v.id"
+      [attr.aria-selected]="current() === v.id"
+      (click)="switchTo(v.id)"
+    >
+      {{ v.short }}
+      <span class="tabs__count">{{ v.count }}</span>
+      @if (!v.hasImage) {
+        <span class="tabs__dot" title="Sin foto" aria-label="Sin foto"></span>
+      }
+    </button>
+  }
+</div>

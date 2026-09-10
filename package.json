@@ -3,10 +3,13 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "dev": "ng serve",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:watch": "ng test --watch",
+    "format": "prettier --write \"src/**/*.{ts,html,scss}\""
   },
   "private": true,
   "packageManager": "npm@11.19.0",
@@ -17,6 +20,7 @@
     "@angular/forms": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
     "@angular/router": "^22.1.0",
+    "idb": "^8.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -28,5 +32,8 @@
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"
+  },
+  "engines": {
+    "node": ">=24.15.0"
   }
 }

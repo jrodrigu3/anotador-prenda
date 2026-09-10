@@ -1,0 +1,80 @@
+@if (cards().length === 0) {
+  <p class="empty">Elige una herramienta y haz clic sobre la prenda para marcar un punto.</p>
+} @else {
+  <ul class="cards">
+    @for (card of cards(); track card.id) {
+      <li
+        class="mark"
+        [class.is-selected]="card.id === selectedId()"
+        [attr.aria-current]="card.id === selectedId() ? 'true' : null"
+        (focusin)="select(card.id)"
+      >
+        <header class="mark__head">
+          <button
+            type="button"
+            class="badge-num mark__badge"
+            [class.badge-num--active]="card.id === selectedId()"
+            [title]="'Ir a la marca ' + card.number"
+            (click)="goTo(card.id)"
+          >
+            {{ card.number }}
+            <span class="u-visually-hidden">Ir a la marca {{ card.number }}</span>
+          </button>
+
+          <label class="u-visually-hidden" [attr.for]="'note-' + card.id">
+            Indicación de la marca {{ card.number }}
+          </label>
+          <textarea
+            #note
+            class="mark__note"
+            [id]="'note-' + card.id"
+            rows="2"
+            [placeholder]="'Qué cambiar en este ' + card.kind + '…'"
+            [value]="card.note"
+            (input)="onNote(card.id, $event)"
+          ></textarea>
+
+          <button
+            type="button"
+            class="btn btn--icon btn--danger mark__del"
+            [title]="'Eliminar la marca ' + card.number"
+            (click)="remove(card.id)"
+          >
+            <span aria-hidden="true">✕</span>
+            <span class="u-visually-hidden">Eliminar la marca {{ card.number }}</span>
+          </button>
+        </header>
+
+        <div class="mark__foot">
+          <label class="u-visually-hidden" [attr.for]="'part-' + card.id">
+            Pieza de la marca {{ card.number }}
+          </label>
+          <select class="mark__part" [id]="'part-' + card.id" (change)="onPart(card, $event)">
+            <option value="" [selected]="card.part === null">Sin pieza</option>
+            @for (g of groups; track g.group) {
+              <optgroup [label]="g.group">
+                @for (p of g.parts; track p.id) {
+                  <option [value]="p.id" [selected]="p.id === card.part">{{ p.label }}</option>
+                }
+              </optgroup>
+            }
+          </select>
+
+          @if (card.part === 'otro') {
+            <label class="u-visually-hidden" [attr.for]="'free-' + card.id">¿Qué pieza es?</label>
+            <input
+              class="mark__free"
+              [id]="'free-' + card.id"
+              type="text"
+              placeholder="¿Qué pieza?"
+              [value]="card.partFreeText"
+              (input)="onFreeText(card.id, $event)"
+            />
+          }
+        </div>
+
+        <p class="mark__place">{{ card.place }}</p>
+      </li>
+    }
+  </ul>
+}

@@ -1,0 +1,16 @@
+.handle {
+  cursor: grab;
+}
+
+.handle__box {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2;
+}
+
+@media (forced-colors: active) {
+  .handle__box {
+    fill: Canvas;
+    stroke: Highlight;
+  }
+}

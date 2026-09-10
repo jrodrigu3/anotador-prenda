@@ -1,0 +1,57 @@
+@if (markNumber() !== null && !preview()) {
+  <svg:line
+    class="mark__leader"
+    [attr.x1]="anchorPx().x"
+    [attr.y1]="anchorPx().y"
+    [attr.x2]="badgePx().x"
+    [attr.y2]="badgePx().y"
+    vector-effect="non-scaling-stroke"
+  />
+}
+
+<!-- Mirilla en el punto exacto, tamaño constante en pantalla -->
+<svg:g [attr.transform]="anchorTransform()">
+  @if (!preview()) {
+    <svg:circle
+      class="ret__hit"
+      [attr.r]="screen.pinHit"
+      fill="transparent"
+      [attr.data-ann-id]="annId()"
+      data-role="shape"
+    />
+  }
+  <svg:path class="ret__halo" [attr.d]="reticlePath" fill="none" />
+  <svg:path class="ret__mid" [attr.d]="reticlePath" fill="none" />
+  <svg:path class="ret__core" [attr.d]="reticlePath" fill="none" />
+</svg:g>
+
+@if (markNumber() !== null && !preview()) {
+  <svg:g
+    class="badge"
+    [attr.transform]="badgeTransform()"
+    [attr.data-ann-id]="annId()"
+    data-role="badge"
+    role="button"
+    [attr.tabindex]="focusable() ? 0 : -1"
+    [attr.aria-label]="ariaText()"
+    [attr.aria-pressed]="selected()"
+  >
+    <svg:rect
+      class="badge__hit"
+      [attr.x]="-badgeWidth() / 2 - 6"
+      [attr.y]="-screen.pinRadius - 6"
+      [attr.width]="badgeWidth() + 12"
+      [attr.height]="screen.pinRadius * 2 + 12"
+      fill="transparent"
+    />
+    <svg:rect
+      class="badge__plate"
+      [attr.x]="-badgeWidth() / 2"
+      [attr.y]="-screen.pinRadius"
+      [attr.width]="badgeWidth()"
+      [attr.height]="screen.pinRadius * 2"
+      [attr.rx]="screen.pinRadius"
+    />
+    <svg:text class="badge__num" x="0" y="3.5" text-anchor="middle">{{ markNumber() }}</svg:text>
+  </svg:g>
+}

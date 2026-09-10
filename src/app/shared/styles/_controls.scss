@@ -1,0 +1,244 @@
+/* Tarjeta: la unidad de composición de toda la app. */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  &__eyebrow {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &__hint {
+    margin: 0 0 0 auto;
+    font-size: 11px;
+    color: var(--color-text-muted);
+  }
+
+  &__body {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--color-text);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  &:hover:not(:disabled) {
+    background: var(--color-surface-alt);
+  }
+
+  &:disabled {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &--primary {
+    color: var(--color-text-inverse);
+    background: var(--color-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+    }
+  }
+
+  &--outline {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-border-strong);
+      background: var(--color-surface);
+    }
+  }
+
+  &--link {
+    min-height: 0;
+    padding: 0;
+    color: var(--color-brand);
+
+    &:hover:not(:disabled) {
+      background: transparent;
+      text-decoration: underline;
+    }
+  }
+
+  &--danger {
+    color: var(--color-danger);
+  }
+
+  &--icon {
+    min-width: var(--tap);
+    padding: 5px;
+  }
+
+  &--small {
+    min-height: 24px;
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Pestañas en píldora, con contador. */
+.tabs {
+  display: inline-flex;
+  gap: var(--space-1);
+
+  &__tab {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 4px 12px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+
+    &:hover {
+      background: var(--color-surface-alt);
+    }
+
+    &.is-active {
+      color: var(--color-brand);
+      background: var(--color-brand-soft);
+      border-color: var(--color-brand-border);
+    }
+  }
+
+  &__count {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-muted);
+  }
+
+  &__tab.is-active &__count {
+    color: var(--color-brand);
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  &__label {
+    font-size: 10px;
+    color: var(--color-text-muted);
+  }
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 6px 9px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:focus {
+    border-color: var(--color-brand);
+    outline: none;
+  }
+}
+
+.textarea {
+  min-height: 56px;
+  resize: vertical;
+}
+
+/* Insignia circular con el número de la marca. */
+.badge-num {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+
+  &--active {
+    color: var(--color-text-inverse);
+    background: var(--color-brand);
+    border-color: var(--color-brand);
+  }
+}
+
+/* Bloques plegables: la explicación sigue disponible, pero no grita. */
+.disclosure {
+  &__summary {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      display: inline-block;
+      width: 12px;
+      content: '›';
+      transition: transform 0.12s;
+    }
+
+    &:hover {
+      color: var(--color-text);
+    }
+  }
+
+  &[open] &__summary::before {
+    transform: rotate(90deg);
+  }
+
+  &__body {
+    padding-top: var(--space-2);
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--color-text-muted);
+  }
+}

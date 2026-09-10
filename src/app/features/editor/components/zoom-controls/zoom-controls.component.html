@@ -1,0 +1,17 @@
+<div class="zoom" role="group" aria-label="Zoom">
+  <button type="button" class="btn btn--icon" title="Alejar (−)" (click)="zoomOut()">
+    <span aria-hidden="true">−</span><span class="u-visually-hidden">Alejar</span>
+  </button>
+  <button
+    type="button"
+    class="zoom__value"
+    title="Ajustar a pantalla (0)"
+    (click)="fit()"
+    aria-live="off"
+  >
+    {{ viewport.zoomPercent() }}%
+  </button>
+  <button type="button" class="btn btn--icon" title="Acercar (+)" (click)="zoomIn()">
+    <span aria-hidden="true">+</span><span class="u-visually-hidden">Acercar</span>
+  </button>
+</div>

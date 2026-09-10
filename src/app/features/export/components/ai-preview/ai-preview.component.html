@@ -1,0 +1,30 @@
+<section class="preview" aria-labelledby="preview-title">
+  <header class="preview__head">
+    <h2 id="preview-title" class="preview__title">Lo que ve la IA</h2>
+    <button type="button" class="btn btn--small" (click)="toggleSize()">
+      {{ actualSize() ? 'Ajustar' : 'Tamaño real' }}
+    </button>
+  </header>
+
+  <p class="preview__hint">Si no distingues un número aquí, la IA tampoco.</p>
+
+  <div class="preview__scroll" [class.is-actual]="actualSize()">
+    @for (img of composites(); track img.key) {
+      <figure class="shot">
+        <img [src]="img.url" [alt]="img.caption" [class.is-actual]="actualSize()" />
+        <figcaption>{{ img.filename }}</figcaption>
+      </figure>
+    }
+  </div>
+
+  @if (crops().length > 0) {
+    <ul class="crops">
+      @for (img of crops(); track img.key) {
+        <li class="crops__item">
+          <img [src]="img.url" [alt]="img.caption" loading="lazy" />
+          <span class="crops__caption">{{ img.caption }}</span>
+        </li>
+      }
+    </ul>
+  }
+</section>

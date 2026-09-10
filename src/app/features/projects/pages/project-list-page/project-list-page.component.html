@@ -1,0 +1,55 @@
+<div class="home">
+  <header class="home__head">
+    <h1 class="home__title">Anotador de Prenda</h1>
+    <p class="home__lead">
+      Señala puntos concretos sobre las fotos de una prenda. La app genera el material con el que
+      una IA sabe exactamente a qué punto te refieres.
+    </p>
+  </header>
+
+  @if (storageWarning(); as w) {
+    <p class="home__warn" role="alert">{{ w }}</p>
+  }
+
+  <div class="home__new">
+    <label class="u-visually-hidden" for="new-name">Nombre de la prenda</label>
+    <input
+      id="new-name"
+      class="input"
+      type="text"
+      placeholder="Nueva prenda"
+      [value]="newName()"
+      (input)="onName($event)"
+      (keydown.enter)="create()"
+    />
+    <button type="button" class="btn btn--primary" (click)="create()">Crear</button>
+  </div>
+
+  @if (loading()) {
+    <p class="home__muted">Cargando…</p>
+  } @else if (rows().length === 0) {
+    <p class="home__muted">Todavía no hay ninguna.</p>
+  } @else {
+    <ul class="rows">
+      @for (row of rows(); track row.id) {
+        <li class="row">
+          <button type="button" class="row__main" (click)="open(row.id)">
+            <span class="row__name">{{ row.name }}</span>
+            <span class="row__meta">
+              {{ row.marks }} {{ row.marks === 1 ? 'marca' : 'marcas' }} · {{ row.updated }}
+            </span>
+          </button>
+          <button
+            type="button"
+            class="btn btn--icon row__del"
+            [title]="'Eliminar ' + row.name"
+            (click)="remove(row)"
+          >
+            <span aria-hidden="true">✕</span>
+            <span class="u-visually-hidden">Eliminar {{ row.name }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

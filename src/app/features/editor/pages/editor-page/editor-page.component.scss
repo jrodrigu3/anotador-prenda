@@ -1,0 +1,226 @@
+:host {
+  display: block;
+
+  /* `dvh` y no `vh`: en móvil la barra del navegador se retrae y con `vh` el panel
+     inferior queda permanentemente fuera de la pantalla. */
+  height: 100dvh;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  /* Sin esto, cualquier hijo con un ancho mínimo (los campos del encabezado, la barra de
+     herramientas) empuja el layout y desborda la página en horizontal. */
+  overflow: hidden;
+
+  &__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__eyebrow {
+    flex: 0 0 auto;
+    font-size: 10px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &__name {
+    flex: 1 1 160px;
+    min-width: 0;
+    padding: 3px 6px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+
+    &:hover {
+      border-color: var(--color-border);
+    }
+
+    &:focus {
+      border-color: var(--color-brand);
+      outline: none;
+    }
+  }
+
+  &__spacer {
+    flex: 1 1 auto;
+  }
+
+  &__status {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+  }
+
+  &__status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--color-success);
+    border-radius: var(--radius-pill);
+  }
+
+  &__status.is-busy &__status-dot {
+    background: var(--color-warning);
+  }
+
+  &__status.is-error &__status-dot {
+    background: var(--color-danger);
+  }
+
+  /* Zona de trabajo: tarjetas blancas sobre gris. */
+  &__page {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 0;
+    padding: var(--space-3);
+    overflow-y: auto;
+    background: var(--color-bg);
+  }
+
+  /* La tarjeta principal ocupa el alto disponible; la de detalles se queda pequeña. */
+  &__page > .card:first-child {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 340px;
+  }
+
+  &__split {
+    display: grid;
+    flex: 1 1 auto;
+    gap: var(--space-3);
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  }
+
+  &__stage {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  &__bar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-width: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__tools {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  &__zoom {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    padding: 0 var(--space-2);
+  }
+
+  &__canvas {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Capa aparte sobre el lienzo, no un hijo en flujo: centrar con `place-items` en el
+     contenedor dejaba al lienzo sin altura y el SVG desaparecía. */
+  &__upload {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    padding: var(--space-4);
+    background: var(--color-surface);
+    place-items: center;
+  }
+
+  &__marks {
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  &__details-head {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+@media (width <= 1180px) {
+  .editor__split {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+  }
+}
+
+/* ── Tableta y móvil: una sola columna, lienzo arriba y tarjetas debajo ─────── */
+@media (width <= 900px) {
+  .editor {
+    &__page {
+      padding: var(--space-2);
+    }
+
+    &__page > .card:first-child {
+      min-height: 0;
+    }
+
+    &__split {
+      display: flex;
+      flex-direction: column;
+      grid-template-columns: none;
+    }
+
+    &__stage {
+      flex: 0 0 auto;
+      height: 44dvh;
+      min-height: 220px;
+    }
+
+    /* El scroll manda en la página, no dentro de la columna: una lista con scroll propio
+       dentro de otra con scroll es intocable con el dedo. */
+    &__marks {
+      flex: 0 0 auto;
+      overflow: visible;
+    }
+  }
+}
+
+@media (width <= 620px) {
+  .editor {
+    &__top {
+      padding: var(--space-2);
+      column-gap: var(--space-2);
+    }
+
+    &__eyebrow {
+      display: none;
+    }
+  }
+}

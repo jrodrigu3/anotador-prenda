@@ -1,0 +1,100 @@
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+
+  &__head {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  &__title {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  &__hint {
+    margin: 0 0 var(--space-2);
+    font-size: 11px;
+    color: var(--color-text-muted);
+  }
+
+  /* El contenido ancho hace scroll en su propio contenedor: la página nunca
+     se desplaza en horizontal. */
+  &__scroll {
+    max-height: 70dvh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+}
+
+.shot {
+  padding: var(--space-2);
+  margin: 0;
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    background: var(--color-surface);
+
+    &.is-actual {
+      width: auto;
+      max-width: none;
+    }
+  }
+
+  figcaption {
+    padding-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-muted);
+  }
+}
+
+.crops {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  margin: var(--space-2) 0 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+
+    img {
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+    }
+  }
+
+  &__caption {
+    font-size: 11px;
+    color: var(--color-text-muted);
+  }
+}
+
+@media (width <= 620px) {
+  .preview {
+    &__head {
+      flex-wrap: wrap;
+    }
+
+    /* Menos alto en móvil: el panel de opciones queda justo encima y hay que poder
+       volver a él sin recorrer una pantalla entera de imagen. */
+    &__scroll {
+      max-height: 52dvh;
+    }
+  }
+}

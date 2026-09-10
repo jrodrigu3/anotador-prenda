@@ -1,0 +1,158 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-width: 0;
+
+  /* El scroll horizontal vive DENTRO de la barra, envolviendo solo a las herramientas:
+     así deshacer y rehacer nunca se van fuera de la pantalla en un móvil. */
+  &__scroll {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 2px;
+    align-items: center;
+    min-width: 0;
+    padding: var(--space-1) var(--space-2);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__end {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 2px;
+    padding: var(--space-1) var(--space-2);
+    border-left: 1px solid var(--color-border);
+  }
+
+  &__sep {
+    flex: 0 0 auto;
+    width: 1px;
+    height: 14px;
+    margin: 0 var(--space-1);
+    background: var(--color-border);
+  }
+
+  &__chain {
+    flex: 0 0 auto;
+    min-height: var(--tap);
+    padding: 4px 7px;
+    font: inherit;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+
+    &:hover {
+      color: var(--color-text);
+    }
+
+    &.is-active {
+      color: var(--color-text);
+      background: var(--color-surface-alt);
+    }
+  }
+}
+
+.tool {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    background: var(--color-surface-alt);
+  }
+
+  &.is-active {
+    color: var(--color-brand);
+    background: var(--color-brand-soft);
+  }
+
+  &__icon {
+    width: 12px;
+    height: 12px;
+    background: currentcolor;
+
+    &[data-icon='cursor'] {
+      clip-path: polygon(0 0, 0 100%, 32% 72%, 52% 100%, 68% 88%, 48% 62%, 88% 55%);
+    }
+
+    &[data-icon='pin'] {
+      clip-path: circle(26% at 50% 50%);
+    }
+
+    &[data-icon='arrow'] {
+      clip-path: polygon(0 44%, 66% 44%, 66% 20%, 100% 50%, 66% 80%, 66% 56%, 0 56%);
+    }
+
+    &[data-icon='rect'] {
+      clip-path: polygon(
+        0 0,
+        100% 0,
+        100% 100%,
+        0 100%,
+        0 88%,
+        88% 88%,
+        88% 12%,
+        12% 12%,
+        12% 88%,
+        0 88%
+      );
+    }
+
+    &[data-icon='poly'] {
+      clip-path: polygon(
+        50% 0,
+        100% 38%,
+        82% 100%,
+        18% 100%,
+        0 38%,
+        12% 44%,
+        28% 88%,
+        72% 88%,
+        88% 44%,
+        50% 14%
+      );
+    }
+
+    &[data-icon='hand'] {
+      clip-path: polygon(
+        30% 100%,
+        10% 55%,
+        22% 45%,
+        32% 58%,
+        32% 8%,
+        44% 8%,
+        44% 45%,
+        56% 45%,
+        56% 14%,
+        68% 14%,
+        68% 48%,
+        80% 48%,
+        80% 78%,
+        66% 100%
+      );
+    }
+  }
+}

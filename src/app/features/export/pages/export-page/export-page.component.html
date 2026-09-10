@@ -1,0 +1,150 @@
+<div class="export">
+  <header class="export__bar">
+    <button type="button" class="btn btn--icon export__back" (click)="back()">
+      <span aria-hidden="true">←</span>
+      <span class="u-visually-hidden">Volver al editor</span>
+    </button>
+    <h1 class="export__title">Material para la IA</h1>
+    @if (project(); as p) {
+      <span class="export__meta">
+        {{ p.name }} · {{ markCount() }} {{ markCount() === 1 ? 'marca' : 'marcas' }}
+      </span>
+    }
+  </header>
+
+  @if (error(); as e) {
+    <p class="export__alert" role="alert">{{ e }}</p>
+  }
+
+  <div class="export__body">
+    <aside class="panel">
+      <label class="u-visually-hidden" for="tpl">Tarea para la IA</label>
+      <select id="tpl" class="select" (change)="onTemplate($event)">
+        @for (t of templates; track t.id) {
+          <option [value]="t.id" [selected]="t.id === templateId()">{{ t.label }}</option>
+        }
+      </select>
+
+      <label class="u-visually-hidden" for="struct">Organización del encargo</label>
+      <select id="struct" class="select" (change)="onStructure($event)">
+        @for (s of structures; track s.id) {
+          <option [value]="s.id" [selected]="s.id === structure()">{{ s.label }}</option>
+        }
+      </select>
+      <p class="panel__note">{{ structureHint() }}</p>
+      @if (structure() === 'por_pieza' && unlabelled() > 0) {
+        <p class="panel__note panel__note--warn">
+          {{ unlabelled() }} {{ unlabelled() === 1 ? 'marca' : 'marcas' }} sin pieza asignada:
+          {{ unlabelled() === 1 ? 'irá' : 'irán' }} a un grupo aparte para que la IA
+          {{ unlabelled() === 1 ? 'la deduzca' : 'las deduzca' }}.
+        </p>
+      }
+
+      @if (templateId() === 'libre') {
+        <label class="u-visually-hidden" for="custom">Instrucción</label>
+        <textarea
+          id="custom"
+          class="textarea"
+          rows="4"
+          placeholder="Qué quieres que haga la IA con estas anotaciones."
+          [value]="customTask()"
+          (input)="onCustomTask($event)"
+        ></textarea>
+      }
+
+      <button
+        type="button"
+        class="btn btn--primary panel__cta"
+        [disabled]="building() || markCount() === 0"
+        (click)="generate()"
+      >
+        {{ building() ? 'Generando…' : 'Generar material' }}
+      </button>
+
+      <p class="panel__meta" role="status">
+        @if (progress(); as p) {
+          {{ p }}
+        } @else if (costLabel(); as c) {
+          {{ c }}
+        } @else if (blankCount() > 0) {
+          {{ blankCount() }} {{ blankCount() === 1 ? 'marca' : 'marcas' }} sin indicación
+        }
+      </p>
+
+      @if (payload(); as pl) {
+        <div class="panel__actions">
+          <button type="button" class="btn btn--outline" (click)="downloadZip()">
+            Descargar ZIP
+          </button>
+          <button type="button" class="btn btn--outline" (click)="copyPrompt()">
+            Copiar prompt
+          </button>
+          @for (name of compositeNames(); track name; let i = $index) {
+            <button type="button" class="btn btn--outline" (click)="copyComposite(i)">
+              Copiar {{ name }}
+            </button>
+          }
+          <button type="button" class="btn btn--outline" (click)="downloadLoose()">
+            Archivos sueltos
+          </button>
+          <button type="button" class="btn btn--outline" (click)="printToConsole()">
+            Ver en consola
+          </button>
+        </div>
+
+        @if (pl.warnings.length > 0) {
+          <ul class="panel__warnings">
+            @for (w of pl.warnings; track w) {
+              <li>{{ w }}</li>
+            }
+          </ul>
+        }
+      }
+
+      <details class="disclosure">
+        <summary class="disclosure__summary">Contenido del paquete</summary>
+        <div class="panel__opts">
+          <label class="check">
+            <input type="checkbox" [checked]="includeCrops()" (change)="toggle('crops', $event)" />
+            <span>Recortes por anotación</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" [checked]="legendBand()" (change)="toggle('legend', $event)" />
+            <span>Banda de leyenda</span>
+          </label>
+          <label class="check">
+            <input
+              type="checkbox"
+              [checked]="onlyWithNote()"
+              (change)="toggle('onlyNote', $event)"
+            />
+            <span>Solo marcas con indicación</span>
+          </label>
+          <label class="check">
+            <input
+              type="checkbox"
+              [checked]="includeOriginals()"
+              (change)="toggle('originals', $event)"
+            />
+            <span>Incluir fotos originales</span>
+          </label>
+        </div>
+      </details>
+    </aside>
+
+    <main class="export__main">
+      @if (payload(); as pl) {
+        <app-ai-preview [payload]="pl" />
+      } @else {
+        <p class="export__placeholder">
+          Al generarlo verás exactamente las imágenes que recibirá el modelo, a la resolución a la
+          que las va a leer.
+        </p>
+      }
+    </main>
+  </div>
+
+  @if (toast(); as t) {
+    <p class="toast" role="status">{{ t }}</p>
+  }
+</div>

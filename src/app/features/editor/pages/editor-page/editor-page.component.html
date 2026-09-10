@@ -1,0 +1,114 @@
+<div class="editor">
+  <header class="editor__top">
+    <button
+      type="button"
+      class="btn btn--icon editor__back"
+      (click)="goHome()"
+      title="Todas las prendas"
+    >
+      <span aria-hidden="true">←</span>
+      <span class="u-visually-hidden">Todas las prendas</span>
+    </button>
+
+    <span class="editor__eyebrow">Anotaciones para la IA</span>
+
+    @if (project(); as p) {
+      <label class="u-visually-hidden" for="proj-name">Nombre de la prenda</label>
+      <input
+        id="proj-name"
+        class="editor__name"
+        type="text"
+        [value]="p.name"
+        (input)="onName($event)"
+      />
+    }
+
+    <span class="editor__spacer"></span>
+
+    <span
+      class="editor__status"
+      [class.is-error]="status() === 'error'"
+      [class.is-busy]="status() === 'guardando' || status() === 'cargando'"
+      [attr.title]="statusLabel()"
+      role="status"
+    >
+      <span class="editor__status-dot" aria-hidden="true"></span>
+      <span class="u-visually-hidden">{{ statusLabel() }}</span>
+    </span>
+
+    <button type="button" class="btn btn--primary" (click)="goToExport()">Exportar</button>
+  </header>
+
+  <main class="editor__page">
+    <section class="card">
+      <div class="card__head">
+        <app-view-switcher />
+        <p class="card__hint">
+          @if (hasImage()) {
+            Elige una herramienta y haz clic sobre la prenda · arrastra para mover una marca
+          } @else {
+            Sube la foto de esta vista para empezar
+          }
+        </p>
+      </div>
+
+      <div class="card__body editor__split">
+        <div class="editor__stage">
+          <div class="editor__bar">
+            <div class="editor__tools"><app-tool-bar /></div>
+            <!-- El zoom vive en la barra y no flotando sobre el lienzo: flotando tapaba los
+                 marcadores de la esquina, y ver TODAS las marcas es el requisito del producto.
+                 Sin foto no hay escala que enseñar. -->
+            @if (hasImage()) {
+              <app-zoom-controls class="editor__zoom" />
+            }
+          </div>
+
+          <div class="editor__canvas">
+            <app-annotation-canvas />
+            @if (!hasImage()) {
+              <div class="editor__upload"><app-garment-upload /></div>
+            }
+          </div>
+        </div>
+
+        <aside class="editor__marks">
+          <app-annotation-cards />
+        </aside>
+      </div>
+    </section>
+
+    @if (project(); as p) {
+      <section class="card">
+        <details class="disclosure">
+          <summary class="disclosure__summary card__head editor__details-head">
+            Detalles de la prenda
+          </summary>
+          <div class="card__body editor__details">
+            <label class="u-visually-hidden" for="proj-ref">Referencia</label>
+            <input
+              id="proj-ref"
+              class="input"
+              type="text"
+              placeholder="Referencia"
+              [value]="p.reference"
+              (input)="onReference($event)"
+            />
+            <label class="u-visually-hidden" for="general">Notas generales</label>
+            <textarea
+              id="general"
+              class="textarea"
+              rows="2"
+              placeholder="Contexto que no cuelga de ninguna marca"
+              [value]="p.generalNotes"
+              (input)="onGeneralNotes($event)"
+            ></textarea>
+            <app-garment-upload />
+          </div>
+        </details>
+      </section>
+    }
+  </main>
+
+  <p class="u-visually-hidden" aria-live="polite">{{ liveMessage() }}</p>
+</div>
