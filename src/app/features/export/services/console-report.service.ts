@@ -126,7 +126,9 @@ export class ConsoleReportService {
         vista: VIEW_SHORT[a.view],
         tipo: a.type,
         pieza: a.garmentPart.label,
-        'dónde (imagen)': `${a.spatialDescriptor.verticalThird} / ${a.spatialDescriptor.horizontalBand}`,
+        acción: a.action || '—',
+        zona: a.spatialDescriptor.zone,
+        referencia: a.spatialDescriptor.landmark,
         'lado del portador': a.spatialDescriptor.wearerSide,
         'punto (px)': `${a.anchorPoint.absolutePx.x}, ${a.anchorPoint.absolutePx.y}`,
         recorte: a.cropFile?.replace('recortes/', '') ?? '—',
@@ -187,12 +189,11 @@ export class ConsoleReportService {
       );
       console.log(
         `%c5. Al responder, usa el lado del PORTADOR: ${side}` +
-          (side !== 'centro'
-            ? ` (en la imagen se ve a la ${a.spatialDescriptor.horizontalBand})`
-            : ''),
+          (side !== 'centro' ? ` (en la imagen se ve a la ${a.spatialDescriptor.imageSide})` : ''),
         STYLE.md,
       );
-      console.log(`%c6. Aplica la indicación: «${a.note || '—'}»`, STYLE.strong);
+      if (a.action) console.log(`%c6. Acción declarada: ${a.action}`, STYLE.strong);
+      console.log(`%c7. Matiz del diseñador: «${a.note || '—'}»`, STYLE.strong);
       console.groupEnd();
     }
     console.groupEnd();

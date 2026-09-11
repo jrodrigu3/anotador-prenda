@@ -11,10 +11,29 @@ import {
 } from '@angular/core';
 import { isBlank } from '../../../../core/models/annotation.model';
 import { KIND_LABELS } from '../../../../core/models/geometry.model';
+import {
+  AnnotationIntent,
+  ChoiceIntent,
+  ColorIntent,
+  COLOR_TARGETS,
+  defaultIntent,
+  DIMENSIONS,
+  DIRECTIONS,
+  IntentKind,
+  INTENT_LABELS,
+  INTENT_ORDER,
+  intentIncomplete,
+  intentSummary,
+  MeasureIntent,
+  MoveIntent,
+  SHAPES,
+  STITCHES,
+  TextIntent,
+  UNITS,
+} from '../../../../core/models/intent.model';
 import { VIEW_LABELS } from '../../../../core/models/project.model';
 import { GarmentPartId, partGroups, partLabel } from '../../../../core/taxonomy/garment-parts';
-import { deriveSpatial } from '../../../../core/taxonomy/spatial-descriptor';
-import { anchorOf } from '../../../../core/util/geometry.util';
+import { shortPosition } from '../../../../core/taxonomy/spatial-descriptor';
 import { EditorStore } from '../../services/editor.store';
 import { ViewportService } from '../../services/viewport.service';
 
@@ -28,6 +47,10 @@ interface CardView {
   readonly partLabel: string;
   readonly place: string;
   readonly draft: boolean;
+  readonly intent: AnnotationIntent;
+  readonly action: string;
+  /** Qué le falta a la acción para ser ejecutable, si le falta algo. */
+  readonly missing: string | null;
 }
 
 /**
@@ -49,15 +72,21 @@ export class AnnotationCardsComponent {
   private readonly notes = viewChildren<ElementRef<HTMLTextAreaElement>>('note');
 
   readonly groups = partGroups();
+  readonly intentKinds = INTENT_ORDER;
+  readonly intentLabels = INTENT_LABELS;
+  readonly colorTargets = COLOR_TARGETS;
+  readonly shapes = SHAPES;
+  readonly stitches = STITCHES;
+  readonly dimensions = DIMENSIONS;
+  readonly directions = DIRECTIONS;
+  readonly units = UNITS;
   readonly selectedId = this.store.selectedId;
   readonly viewLabel = computed(() => VIEW_LABELS[this.store.viewId()]);
 
   readonly cards = computed<readonly CardView[]>(() => {
     const numbers = this.store.numbers();
-    const view = this.store.viewId();
     return this.store.annotations().map((a) => {
-      const g = this.store.geometryOf(a.id);
-      const spatial = g ? deriveSpatial(anchorOf(g), view) : null;
+      const spatial = this.store.spatialOf(a.id);
       return {
         id: a.id,
         number: numbers.get(a.id) ?? 0,
@@ -66,13 +95,68 @@ export class AnnotationCardsComponent {
         part: a.part,
         partFreeText: a.partFreeText,
         partLabel: a.part ? partLabel(a.part, a.partFreeText) : 'Sin pieza',
-        place: spatial ? placeLine(spatial) : '',
-        draft: isBlank(a),
+        place: spatial ? shortPosition(spatial) : '',
+        draft: isBlank(a) && a.intent.kind === 'libre',
+        intent: a.intent,
+        action: intentSummary(a.intent),
+        missing: intentIncomplete(a.intent),
       };
     });
   });
 
   readonly draftCount = computed(() => this.cards().filter((c) => c.draft).length);
+
+  /* ── Estrechamiento de tipos para la plantilla ───────────────────────────────
+     La plantilla no puede estrechar una unión discriminada por sí sola; estos
+     ayudantes devuelven el tipo concreto o `null`, y `@if (…; as x)` hace el resto. */
+
+  asColor(i: AnnotationIntent): ColorIntent | null {
+    return i.kind === 'color' ? i : null;
+  }
+
+  asMeasure(i: AnnotationIntent): MeasureIntent | null {
+    return i.kind === 'medida' ? i : null;
+  }
+
+  asMove(i: AnnotationIntent): MoveIntent | null {
+    return i.kind === 'mover' ? i : null;
+  }
+
+  asChoice(i: AnnotationIntent): ChoiceIntent | null {
+    return i.kind === 'forma' || i.kind === 'costura' ? i : null;
+  }
+
+  asText(i: AnnotationIntent): TextIntent | null {
+    return i.kind === 'material' ||
+      i.kind === 'acabado' ||
+      i.kind === 'anadir' ||
+      i.kind === 'quitar'
+      ? i
+      : null;
+  }
+
+  /* ── Edición de la acción ────────────────────────────────────────────────── */
+
+  onIntentKind(id: string, ev: Event): void {
+    const kind = (ev.target as HTMLSelectElement).value as IntentKind;
+    this.store.setIntent(id, defaultIntent(kind));
+  }
+
+  /** Parche sobre la acción actual: cambiar un campo no debe borrar los demás. */
+  patch(id: string, intent: AnnotationIntent, change: Partial<AnnotationIntent>): void {
+    this.store.setIntent(id, { ...intent, ...change } as AnnotationIntent);
+  }
+
+  patchText(id: string, intent: AnnotationIntent, field: string, ev: Event): void {
+    const value = (ev.target as HTMLInputElement | HTMLSelectElement).value;
+    this.patch(id, intent, { [field]: value } as Partial<AnnotationIntent>);
+  }
+
+  patchNumber(id: string, intent: AnnotationIntent, field: string, ev: Event): void {
+    const raw = Number((ev.target as HTMLInputElement).value);
+    const value = Number.isFinite(raw) && raw >= 0 ? raw : 0;
+    this.patch(id, intent, { [field]: value } as Partial<AnnotationIntent>);
+  }
 
   private readonly lastFocusRequest = signal(0);
 
@@ -119,15 +203,4 @@ export class AnnotationCardsComponent {
   remove(id: string): void {
     this.store.remove(id);
   }
-}
-
-/**
- * Una sola línea con las dos lecturas del lado. En confección «manga izquierda» es la del
- * PORTADOR, no la de la imagen; verlo aquí es lo que evita coser la prenda espejada.
- */
-function placeLine(s: ReturnType<typeof deriveSpatial>): string {
-  const zone = `tercio ${s.verticalThird}`;
-  if (s.wearerSide === 'centro') return `${zone} · centro`;
-  const worn = s.wearerSide === 'izquierda' ? 'izquierdo' : 'derecho';
-  return `${zone} · ${s.horizontalBand} en la imagen · lado ${worn} de quien la viste`;
 }

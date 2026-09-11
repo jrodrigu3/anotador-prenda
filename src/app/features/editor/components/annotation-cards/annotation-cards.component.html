@@ -49,7 +49,7 @@
           <label class="u-visually-hidden" [attr.for]="'part-' + card.id">
             Pieza de la marca {{ card.number }}
           </label>
-          <select class="mark__part" [id]="'part-' + card.id" (change)="onPart(card, $event)">
+          <select class="mark__pick" [id]="'part-' + card.id" (change)="onPart(card, $event)">
             <option value="" [selected]="card.part === null">Sin pieza</option>
             @for (g of groups; track g.group) {
               <optgroup [label]="g.group">
@@ -57,6 +57,19 @@
                   <option [value]="p.id" [selected]="p.id === card.part">{{ p.label }}</option>
                 }
               </optgroup>
+            }
+          </select>
+
+          <label class="u-visually-hidden" [attr.for]="'kind-' + card.id">
+            Qué hacer en la marca {{ card.number }}
+          </label>
+          <select
+            class="mark__pick mark__pick--action"
+            [id]="'kind-' + card.id"
+            (change)="onIntentKind(card.id, $event)"
+          >
+            @for (k of intentKinds; track k) {
+              <option [value]="k" [selected]="k === card.intent.kind">{{ intentLabels[k] }}</option>
             }
           </select>
 
@@ -72,6 +85,153 @@
             />
           }
         </div>
+
+        <!-- Campos propios de la acción elegida. Solo aparecen los que aplican. -->
+        @if (asColor(card.intent); as color) {
+          <div class="mark__fields">
+            <label class="swatch" [title]="'Color de la marca ' + card.number">
+              <span class="swatch__chip" [style.background]="color.hex"></span>
+              <input
+                type="color"
+                class="swatch__input"
+                [value]="color.hex"
+                aria-label="Muestra de color"
+                (input)="patchText(card.id, color, 'hex', $event)"
+              />
+            </label>
+            <input
+              class="mark__field"
+              type="text"
+              placeholder="Nombre (Celeste 1)"
+              [value]="color.name"
+              aria-label="Nombre del color"
+              (input)="patchText(card.id, color, 'name', $event)"
+            />
+            <input
+              class="mark__field mark__field--code"
+              type="text"
+              placeholder="14-4112 TCX"
+              [value]="color.code"
+              aria-label="Código del color"
+              (input)="patchText(card.id, color, 'code', $event)"
+            />
+            <select
+              class="mark__field"
+              aria-label="Sobre qué se aplica el color"
+              (change)="patchText(card.id, color, 'target', $event)"
+            >
+              @for (t of colorTargets; track t.id) {
+                <option [value]="t.id" [selected]="t.id === color.target">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (asMeasure(card.intent); as m) {
+          <div class="mark__fields">
+            <select
+              class="mark__field"
+              aria-label="Operación"
+              (change)="patchText(card.id, m, 'op', $event)"
+            >
+              <option value="aumentar" [selected]="m.op === 'aumentar'">aumentar</option>
+              <option value="reducir" [selected]="m.op === 'reducir'">reducir</option>
+              <option value="fijar" [selected]="m.op === 'fijar'">fijar</option>
+            </select>
+            <select
+              class="mark__field"
+              aria-label="Dimensión"
+              (change)="patchText(card.id, m, 'dimension', $event)"
+            >
+              @for (d of dimensions; track d) {
+                <option [value]="d" [selected]="d === m.dimension">{{ d }}</option>
+              }
+            </select>
+            <input
+              class="mark__field mark__field--num"
+              type="number"
+              min="0"
+              step="0.1"
+              [value]="m.value"
+              aria-label="Cantidad"
+              (input)="patchNumber(card.id, m, 'value', $event)"
+            />
+            <select
+              class="mark__field mark__field--unit"
+              aria-label="Unidad"
+              (change)="patchText(card.id, m, 'unit', $event)"
+            >
+              @for (u of units; track u) {
+                <option [value]="u" [selected]="u === m.unit">{{ u }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (asMove(card.intent); as mv) {
+          <div class="mark__fields">
+            <select
+              class="mark__field"
+              aria-label="Dirección"
+              (change)="patchText(card.id, mv, 'direction', $event)"
+            >
+              @for (d of directions; track d) {
+                <option [value]="d" [selected]="d === mv.direction">{{ d }}</option>
+              }
+            </select>
+            @if (mv.direction !== 'centrar') {
+              <input
+                class="mark__field mark__field--num"
+                type="number"
+                min="0"
+                step="0.1"
+                [value]="mv.value"
+                aria-label="Distancia"
+                (input)="patchNumber(card.id, mv, 'value', $event)"
+              />
+              <select
+                class="mark__field mark__field--unit"
+                aria-label="Unidad"
+                (change)="patchText(card.id, mv, 'unit', $event)"
+              >
+                @for (u of units; track u) {
+                  <option [value]="u" [selected]="u === mv.unit">{{ u }}</option>
+                }
+              </select>
+            }
+          </div>
+        }
+
+        @if (asChoice(card.intent); as ch) {
+          <div class="mark__fields">
+            <select
+              class="mark__field mark__field--wide"
+              [attr.aria-label]="ch.kind === 'forma' ? 'Forma o borde' : 'Tipo de costura'"
+              (change)="patchText(card.id, ch, 'value', $event)"
+            >
+              @for (v of ch.kind === 'forma' ? shapes : stitches; track v) {
+                <option [value]="v" [selected]="v === ch.value">{{ v }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (asText(card.intent); as t) {
+          <div class="mark__fields">
+            <input
+              class="mark__field mark__field--wide"
+              type="text"
+              [placeholder]="intentLabels[t.kind] + '…'"
+              [value]="t.value"
+              [attr.aria-label]="intentLabels[t.kind]"
+              (input)="patchText(card.id, t, 'value', $event)"
+            />
+          </div>
+        }
+
+        @if (card.missing; as missing) {
+          <p class="mark__missing">Acción incompleta: {{ missing }}.</p>
+        }
 
         <p class="mark__place">{{ card.place }}</p>
       </li>

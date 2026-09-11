@@ -73,6 +73,15 @@ export class EditorPageComponent {
     this.store.setReference((ev.target as HTMLInputElement).value);
   }
 
+  /** El alto real es lo que convierte «a 40 % del alto» en «a 29 cm del hombro». */
+  onHeight(ev: Event): void {
+    const raw = (ev.target as HTMLInputElement).value.trim();
+    const value = raw === '' ? null : Number(raw);
+    this.store.setGarmentHeightCm(
+      value !== null && Number.isFinite(value) && value > 0 ? value : null,
+    );
+  }
+
   onGeneralNotes(ev: Event): void {
     this.store.setGeneralNotes((ev.target as HTMLTextAreaElement).value);
   }

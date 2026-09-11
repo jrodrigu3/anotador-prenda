@@ -94,6 +94,19 @@
               [value]="p.reference"
               (input)="onReference($event)"
             />
+            <label class="field__label" for="height">
+              Alto real de la prenda (cm) — convierte las posiciones en centímetros
+            </label>
+            <input
+              id="height"
+              class="input"
+              type="number"
+              min="1"
+              step="0.5"
+              placeholder="p. ej. 72"
+              [value]="project()?.garmentHeightCm ?? ''"
+              (input)="onHeight($event)"
+            />
             <label class="u-visually-hidden" for="general">Notas generales</label>
             <textarea
               id="general"

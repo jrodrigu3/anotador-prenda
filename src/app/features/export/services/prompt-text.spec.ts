@@ -22,14 +22,33 @@ function ann(
     badgeCenter: { normalized: { x: 0.85, y: 0.25 }, absolutePx: { x: 1530, y: 337 } },
     garmentPart: { id: partId, label },
     spatialDescriptor: {
-      text: 'Tercio superior, mitad derecha…',
-      verticalThird: 'superior',
-      horizontalBand: 'derecha',
+      text: 'Zona: pecho alto / canesú…',
+      zone: 'pecho alto / canesú',
+      landmark: 'hombro',
+      fromTopPct: 18,
+      fromCenterPct: 64,
+      imageSide: 'derecha',
       wearerSide: 'izquierda',
-      gridCell: 'E2',
-      percentFromLeft: 80,
-      percentFromTop: 30,
+      approxFromTopCm: 13,
+      approxFromCenterCm: 17.5,
+      photoPctFromLeft: 80,
+      photoPctFromTop: 30,
+      measuredOnPhoto: false,
     },
+    action:
+      number === 1
+        ? 'Cambiar la forma o el borde a redondeado'
+        : 'Cambiar el color del tejido a Celeste 1 · 14-4112 TCX (#c3d3e8)',
+    intent:
+      number === 1
+        ? { kind: 'forma', value: 'redondeado' }
+        : {
+            kind: 'color',
+            target: 'tejido',
+            hex: '#c3d3e8',
+            name: 'Celeste 1',
+            code: '14-4112 TCX',
+          },
     note: number === 1 ? 'Redondear la punta' : 'Bajar 2 cm',
     cropFile: `recortes/0${number}_frente.jpg`,
     cropRegionPx: { x: 1000, y: 100, w: 400, h: 400 },
@@ -44,7 +63,7 @@ function bundle(overrides: Partial<AnnotationsBundleJson> = {}): AnnotationsBund
     createdAt: '2026-09-08T10:22:03.118Z',
     generator: { name: 'Anotador de Prenda', version: '1.0.0' },
     language: 'es',
-    garment: { type: 'camisa', reference: 'SS26-CM-014', notes: '' },
+    garment: { type: 'camisa', reference: 'SS26-CM-014', notes: '', heightCm: 72 },
     readme: BUNDLE_README,
     coordinateSystem: COORDINATE_SYSTEM,
     markerLegend: MARKER_LEGEND,
@@ -57,6 +76,7 @@ function bundle(overrides: Partial<AnnotationsBundleJson> = {}): AnnotationsBund
         compositeSize: { width: 1568, height: 1176 },
         compositeCanvasSize: { width: 1568, height: 1290 },
         compositeScale: 0.871,
+        garmentBox: { x: 0.1, y: 0.05, w: 0.8, h: 0.9 },
         annotationNumbers: [1, 2],
       },
     ],
@@ -105,16 +125,47 @@ describe('buildPromptMarkdown', () => {
 
   /** La tabla sustituye al JSON incrustado: es donde está el ahorro. */
   it('lleva una fila por marca con los tres canales', () => {
-    expect(md).toContain('| # | vista | tipo | pieza | zona (imagen) | lado portador |');
-    expect(md).toContain('| 1 | frente | pin | punta de cuello |');
+    expect(md).toContain('| # | vista | pieza | acción | posición en la prenda |');
+    expect(md).toContain('| 1 | frente | punta de cuello |');
     expect(md).toContain('«Redondear la punta»');
-    expect(md).toContain('superior · derecha · E2');
+    expect(md).toContain('**Cambiar la forma o el borde a redondeado**');
   });
 
   it('NO incrusta el annotations.json: repetía cada dato tres veces', () => {
     expect(md).not.toContain('```json');
     expect(md).not.toContain('anchorPoint');
     expect(md).not.toContain('formatVersion');
+  });
+
+  /** La posición se mide contra la PRENDA, no contra el encuadre de la foto. */
+  it('sitúa la marca por zona anatómica y referencia de patronaje, no por celda', () => {
+    expect(md).toContain('pecho alto / canesú · hombro · 18% alto / 64% del eje');
+    expect(md).toContain('≈13 cm del borde superior');
+    expect(md).not.toContain('rejilla');
+    expect(md).not.toContain('gridCell');
+  });
+
+  it('avisa cuando la posición se midió sobre la foto por no detectar el contorno', () => {
+    const sinContorno = buildPromptMarkdown({
+      bundle: bundle({
+        annotations: [
+          {
+            ...ann(1, 'cuello', 'cuello'),
+            spatialDescriptor: {
+              ...ann(1, 'cuello', 'cuello').spatialDescriptor,
+              measuredOnPhoto: true,
+              approxFromTopCm: null,
+              approxFromCenterCm: null,
+            },
+          },
+        ],
+        annotationCount: 1,
+      }),
+      taskText: 'x',
+      cropCount: 0,
+      structure: 'por_marca',
+    });
+    expect(sinContorno).toContain('medido sobre la foto');
   });
 
   it('nombra los números esperados para que el inventario sea comprobable', () => {
@@ -149,7 +200,9 @@ describe('buildPromptMarkdown', () => {
 
   it('incluye las notas generales solo cuando existen', () => {
     const conNotas = buildPromptMarkdown({
-      bundle: bundle({ garment: { type: 'camisa', reference: '', notes: 'Popelín 120 hilos.' } }),
+      bundle: bundle({
+        garment: { type: 'camisa', reference: '', notes: 'Popelín 120 hilos.', heightCm: null },
+      }),
       taskText: 'x',
       cropCount: 0,
       structure: 'por_marca',
@@ -209,6 +262,18 @@ describe('buildPromptMarkdown · organización por pieza (despiece)', () => {
     expect(md).toContain('deduce tú la pieza');
   });
 
+  it('distingue la orden del matiz literal del diseñador', () => {
+    const flat = md.replace(/\s+/g, ' ');
+    expect(flat).toContain('La columna «acción» es la **orden**');
+    expect(flat).toContain('Si el matiz contradice la acción, **no elijas en silencio**');
+    expect(flat).toContain('Cuando no hay acción declarada (`—`), la orden es el matiz');
+  });
+
+  it('explica que la posición se mide contra la prenda y no contra la foto', () => {
+    const flat = md.replace(/\s+/g, ' ');
+    expect(flat).toContain('contra el **contorno de la prenda**, no contra el encuadre de la foto');
+  });
+
   it('pide una sección por pieza y resolver juntas sus marcas', () => {
     expect(md).toContain('una sección por pieza');
     expect(md).toContain('CONFLICTO entre');
@@ -226,9 +291,21 @@ describe('buildPromptMarkdown · organización por pieza (despiece)', () => {
     expect(porMarca).toContain('## Marcas');
   });
 
-  it('es más corto que el prompt que incrustaba el JSON', () => {
-    // El prompt completo con dos anotaciones cabe holgadamente por debajo de lo que ocupaba
-    // solo el JSON incrustado (~4400 caracteres).
-    expect(md.length).toBeLessThan(4400);
+  /**
+   * El ahorro de verdad no está en el texto fijo sino en lo que cuesta cada marca: el JSON
+   * incrustado gastaba ~1.450 caracteres por anotación diciendo el mismo punto cuatro veces.
+   */
+  it('cada marca adicional cuesta una fila, no un objeto JSON', () => {
+    const many = Array.from({ length: 12 }, (_, i) => ann(i + 1, 'cuello', 'punta de cuello'));
+    const doce = buildPromptMarkdown({
+      bundle: bundle({ annotations: many, annotationCount: 12 }),
+      taskText: 'Ficha de taller.',
+      cropCount: 12,
+      structure: 'por_marca',
+    });
+    const porMarca = (doce.length - md.length) / 10;
+    expect(porMarca).toBeLessThan(300);
+    // Y el conjunto sigue por debajo de lo que costaban prompt + JSON solo con dos marcas.
+    expect(doce.length).toBeLessThan(8700);
   });
 });

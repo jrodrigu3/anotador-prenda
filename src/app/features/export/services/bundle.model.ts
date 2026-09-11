@@ -1,4 +1,5 @@
 import { AnnotationKind, NormPoint } from '../../../core/models/geometry.model';
+import { AnnotationIntent } from '../../../core/models/intent.model';
 import { ViewId } from '../../../core/models/project.model';
 import { GarmentPartId } from '../../../core/taxonomy/garment-parts';
 import { SpatialDescriptor } from '../../../core/taxonomy/spatial-descriptor';
@@ -57,7 +58,14 @@ export interface AnnotationJson {
   readonly badgeCenter: { readonly normalized: NormPoint; readonly absolutePx: Px };
   readonly garmentPart: GarmentPartRef;
   readonly spatialDescriptor: SpatialDescriptor;
-  /** El texto del diseñador, literal. */
+  /**
+   * La acción como FRASE canónica («Cambiar el color del tejido a Celeste 1 · 14-4112 TCX»).
+   * Vacía cuando el diseñador solo dejó una nota libre.
+   */
+  readonly action: string;
+  /** La misma acción como datos, para quien la consuma con código. */
+  readonly intent: AnnotationIntent;
+  /** El texto del diseñador, literal. Matiza la acción; no la sustituye. */
   readonly note: string;
   readonly cropFile: string | null;
   readonly cropRegionPx: { x: number; y: number; w: number; h: number } | null;
@@ -81,6 +89,8 @@ export interface ViewJson {
   /** Lienzo completo del archivo, banda de leyenda incluida. */
   readonly compositeCanvasSize: { readonly width: number; readonly height: number };
   readonly compositeScale: number;
+  /** Contorno de la prenda dentro de la foto. `null` = no se detectó; se midió sobre la foto. */
+  readonly garmentBox: { x: number; y: number; w: number; h: number } | null;
   readonly annotationNumbers: readonly number[];
 }
 
@@ -90,7 +100,13 @@ export interface AnnotationsBundleJson {
   readonly createdAt: string;
   readonly generator: { readonly name: string; readonly version: string };
   readonly language: 'es';
-  readonly garment: { readonly type: string; readonly reference: string; readonly notes: string };
+  readonly garment: {
+    readonly type: string;
+    readonly reference: string;
+    readonly notes: string;
+    /** Alto real declarado, si lo hay: es lo que convierte los % en centímetros. */
+    readonly heightCm: number | null;
+  };
   /**
    * Autodescripción DENTRO del JSON, redundante con `prompt.md` a propósito: si el usuario
    * pega solo el JSON y olvida el prompt, el material sigue siendo interpretable. Cuesta
@@ -130,9 +146,10 @@ export const COORDINATE_SYSTEM = {
   xAxis: 'de izquierda a derecha, 0..1 del ancho',
   yAxis: 'de arriba abajo, 0..1 del alto',
   note:
-    "'izquierda' y 'derecha' en horizontalBand se refieren SIEMPRE a la imagen tal como se ve. " +
-    "El campo 'wearerSide' da el lado desde el punto de vista de quien viste la prenda, que en " +
-    'la vista frontal es el contrario.',
+    "'imageSide' se refiere SIEMPRE a la imagen tal como se ve. 'wearerSide' da el lado desde el " +
+    'punto de vista de quien viste la prenda, que en la vista frontal es el contrario. Los ' +
+    "porcentajes de 'spatialDescriptor' se miden contra el CONTORNO DE LA PRENDA " +
+    "('views[].garmentBox'), no contra la foto, salvo que 'measuredOnPhoto' sea true.",
 } as const;
 
 export const MARKER_LEGEND = {

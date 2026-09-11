@@ -11,6 +11,7 @@ import {
 import { ImageRepository } from '../../../core/repositories/image.repository';
 import { partLabel } from '../../../core/taxonomy/garment-parts';
 import { deriveSpatial } from '../../../core/taxonomy/spatial-descriptor';
+import { intentSummary } from '../../../core/models/intent.model';
 import { anchorOf } from '../../../core/util/geometry.util';
 import { pad2, slugify } from '../../../core/util/slug.util';
 import { RenderAnnotation, RenderedCrop, RenderResult } from '../render/render.types';
@@ -119,6 +120,7 @@ export class PromptPayloadBuilder {
           height: result.compositeCanvasSize.h,
         },
         compositeScale: round(result.compositeScale, 5),
+        garmentBox: view.image.garmentBox,
         annotationNumbers: renderAnnotations.map((a) => a.number),
       });
 
@@ -165,7 +167,12 @@ export class PromptPayloadBuilder {
             label,
             ...(a.part === 'otro' ? { freeText: a.partFreeText } : {}),
           },
-          spatialDescriptor: deriveSpatial(anchor, view.id),
+          spatialDescriptor: deriveSpatial(anchor, view.id, {
+            garmentBox: view.image.garmentBox,
+            heightCm: project.garmentHeightCm,
+          }),
+          action: intentSummary(a.intent),
+          intent: a.intent,
           note: a.note,
           cropFile,
           cropRegionPx: crop ? crop.box : null,
@@ -201,6 +208,7 @@ export class PromptPayloadBuilder {
         type: project.garmentType || 'prenda',
         reference: project.reference,
         notes: project.generalNotes,
+        heightCm: project.garmentHeightCm,
       },
       readme: BUNDLE_README,
       coordinateSystem: COORDINATE_SYSTEM,

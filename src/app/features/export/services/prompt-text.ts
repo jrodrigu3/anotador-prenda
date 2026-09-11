@@ -83,6 +83,17 @@ export function buildPromptMarkdown(ctx: PromptContext): string {
     '',
     '**El número es la clave de unión:** marcador `N` en la imagen = recorte `NN_…` = fila `N` de aquí.',
     '',
+    '**Acción y matiz.** La columna «acción» es la **orden**, ya normalizada por el diseñador: ejecútala',
+    'tal cual. El «matiz» es su texto literal y la precisa o la acota («solo este bolsillo», «el bajo',
+    'entero»). Si el matiz contradice la acción, **no elijas en silencio**: dilo. Cuando no hay acción',
+    'declarada (`—`), la orden es el matiz.',
+    '',
+    '**Posición.** Se mide contra el **contorno de la prenda**, no contra el encuadre de la foto:',
+    '«29 % alto» es 29 % del alto de la prenda desde su borde superior, y «30 % del eje» es esa',
+    'fracción del semiancho desde el centro. Los centímetros, cuando aparecen, salen del alto real',
+    'declarado y son aproximados. Si una celda dice «⚠ medido sobre la foto», no se pudo detectar el',
+    'contorno y esos porcentajes valen menos: fíate del recorte.',
+    '',
     '**Izquierda y derecha:** se dan las dos lecturas. En tu respuesta usa **siempre** el lado de quien',
     'viste la prenda, y dilo explícitamente.',
     '',
@@ -96,7 +107,7 @@ export function buildPromptMarkdown(ctx: PromptContext): string {
     ctx.cropCount > 0
       ? '2. **Anclaje.** Para cada marca, mira **primero su recorte** y luego la compuesta para situarla,\n   y di qué parte física señala la mirilla.'
       : '2. **Anclaje.** Para cada marca, di qué parte física señala la mirilla en la compuesta.',
-    '3. **Contraste.** Compáralo con las columnas «pieza» y «zona». Si no cuadran, marca',
+    '3. **Contraste.** Compáralo con las columnas «pieza» y «posición». Si no cuadran, marca',
     '   **DISCREPANCIA**, di cuál de las dos crees correcta y por qué. Nunca lo resuelvas en silencio.',
     '',
     'Reglas duras:',
@@ -134,7 +145,8 @@ const OUTPUT_BY_MARK = `Después, una sección por marca, en orden numérico:
 
 \`\`\`
 ### #N — <pieza> · <vista> · lado <izquierdo/derecho> de quien la viste
-**Pide:** «<texto literal del diseñador>»
+**Orden:** <la acción declarada, o el matiz si no hay acción>
+**Matiz:** «<texto literal del diseñador>»
 **Veo:** <qué hay exactamente en la mirilla>
 **Coherencia:** OK | DISCREPANCIA — <por qué>
 **Ejecución:** <cómo se hace>
@@ -147,7 +159,7 @@ marcas: si dos se contradicen o se solapan, dilo ahí y propón cómo conciliarl
 \`\`\`
 ## <PIEZA>  (marcas #N, #M)
 **Estado actual:** <qué se ve hoy en esa pieza>
-**Cambios pedidos:** <una línea por marca, citando «texto literal» y su #N>
+**Cambios pedidos:** <una línea por marca: la orden, su matiz literal y su #N>
 **Coherencia:** OK | DISCREPANCIA — <por qué> | CONFLICTO entre #N y #M — <cuál>
 **Ejecución:** <secuencia de operaciones sobre la pieza>
 **Implica:** <patrón · costura · producción>
@@ -158,11 +170,11 @@ function byMark(annotations: readonly AnnotationJson[]): string {
   return [
     '## Marcas',
     '',
-    '| # | vista | tipo | pieza | zona (imagen) | lado portador | recorte | indicación |',
+    '| # | vista | pieza | acción | posición en la prenda | lado portador | recorte | matiz del diseñador |',
     '|---|---|---|---|---|---|---|---|',
     ...annotations.map(
       (a) =>
-        `| ${a.number} | ${a.view} | ${a.type} | ${partCell(a)} | ${zoneCell(a)} | ` +
+        `| ${a.number} | ${a.view} | ${partCell(a)} | ${actionCell(a)} | ${zoneCell(a)} | ` +
         `${sideCell(a)} | ${cropCell(a)} | ${noteCell(a)} |`,
     ),
   ].join('\n');
@@ -195,11 +207,11 @@ function byPart(annotations: readonly AnnotationJson[]): string {
         : `### ${capitalize(part)} (${marks})\n`;
     return [
       head,
-      '| # | vista | tipo | zona (imagen) | lado portador | recorte | indicación |',
+      '| # | vista | acción | posición en la prenda | lado portador | recorte | matiz |',
       '|---|---|---|---|---|---|---|',
       ...list.map(
         (a) =>
-          `| ${a.number} | ${a.view} | ${a.type} | ${zoneCell(a)} | ${sideCell(a)} | ` +
+          `| ${a.number} | ${a.view} | ${actionCell(a)} | ${zoneCell(a)} | ${sideCell(a)} | ` +
           `${cropCell(a)} | ${noteCell(a)} |`,
       ),
     ].join('\n');
@@ -218,10 +230,24 @@ function partCell(a: AnnotationJson): string {
   return a.garmentPart.id === null ? '—' : escape(a.garmentPart.label);
 }
 
-/** El descriptor espacial, comprimido: tercio · franja · celda. */
+/**
+ * La posición, comprimida y medida contra la PRENDA: zona anatómica, referencia de
+ * patronaje más cercana y distancias en porcentaje de la propia prenda (o en cm si se
+ * declaró su alto).
+ */
 function zoneCell(a: AnnotationJson): string {
   const s = a.spatialDescriptor;
-  return `${s.verticalThird} · ${s.horizontalBand} · ${s.gridCell}`;
+  const cm = s.approxFromTopCm !== null ? ` ≈${fmt(s.approxFromTopCm)} cm del borde superior` : '';
+  const caveat = s.measuredOnPhoto ? ' ⚠ medido sobre la foto' : '';
+  return `${s.zone} · ${s.landmark} · ${s.fromTopPct}% alto / ${s.fromCenterPct}% del eje${cm}${caveat}`;
+}
+
+function actionCell(a: AnnotationJson): string {
+  return a.action ? `**${escape(a.action)}**` : '—';
+}
+
+function fmt(v: number): string {
+  return Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.', ',');
 }
 
 function sideCell(a: AnnotationJson): string {

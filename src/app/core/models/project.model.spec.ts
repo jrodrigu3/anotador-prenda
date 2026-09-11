@@ -8,6 +8,7 @@ function mark(id: string, order: number): Annotation {
     note: '',
     part: null,
     partFreeText: '',
+    intent: { kind: 'libre' },
     status: 'borrador',
     createdAt: 0,
     updatedAt: 0,

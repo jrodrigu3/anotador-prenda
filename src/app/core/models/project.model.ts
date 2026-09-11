@@ -1,4 +1,5 @@
 import { Annotation, SCHEMA_VERSION } from './annotation.model';
+import { Box } from './geometry.model';
 
 export type ViewId = 'frente' | 'espalda';
 
@@ -25,6 +26,15 @@ export interface ImageRef {
   /** Tamaño ya con la orientación EXIF aplicada. Es la única verdad sobre las dimensiones. */
   readonly naturalWidth: number;
   readonly naturalHeight: number;
+  /**
+   * Contorno de la prenda dentro de la foto, normalizado.
+   *
+   * Sin esto, «tercio medio» se mide sobre la FOTO: si la prenda no está centrada o sobra
+   * fondo, la descripción se desplaza y el taller busca en el sitio equivocado. Con el
+   * contorno, la posición se expresa contra la prenda, que es lo que un patronista entiende.
+   * `null` cuando la detección no es fiable; entonces se cae a la foto entera y se dice.
+   */
+  readonly garmentBox: Box | null;
 }
 
 export interface GarmentView {
@@ -39,6 +49,11 @@ export interface Project {
   readonly name: string;
   readonly garmentType: string;
   readonly reference: string;
+  /**
+   * Alto real de la prenda, si se conoce. Convierte los porcentajes en centímetros, que es
+   * la diferencia entre una posición vaga y una ejecutable.
+   */
+  readonly garmentHeightCm: number | null;
   /** Notas que no cuelgan de ninguna marca concreta. */
   readonly generalNotes: string;
   /** Exactamente frente y espalda, en ese orden. */
@@ -54,6 +69,7 @@ export function emptyProject(id: string, name: string, now = Date.now()): Projec
     name,
     garmentType: 'camisa',
     reference: '',
+    garmentHeightCm: null,
     generalNotes: '',
     views: [
       { id: 'frente', image: null, annotations: [] },

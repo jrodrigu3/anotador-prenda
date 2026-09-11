@@ -1,6 +1,7 @@
 import { computed, DestroyRef, effect, inject, Service, signal, untracked } from '@angular/core';
 import { Annotation, SCHEMA_VERSION } from '../../../core/models/annotation.model';
 import { Box, Geometry } from '../../../core/models/geometry.model';
+import { AnnotationIntent, FREE_INTENT } from '../../../core/models/intent.model';
 import {
   emptyProject,
   GarmentView,
@@ -14,6 +15,7 @@ import { ImageImportService } from '../../../core/media/image-import.service';
 import { ImageRepository } from '../../../core/repositories/image.repository';
 import { ProjectRepository } from '../../../core/repositories/project.repository';
 import { GarmentPartId } from '../../../core/taxonomy/garment-parts';
+import { deriveSpatial, SpatialDescriptor } from '../../../core/taxonomy/spatial-descriptor';
 import { anchorOf, bboxOf, roundGeometry } from '../../../core/util/geometry.util';
 import { newId } from '../../../core/util/id.util';
 import { UndoStack } from './undo-stack';
@@ -206,6 +208,7 @@ export class EditorStore {
       note: '',
       part: null,
       partFreeText: '',
+      intent: FREE_INTENT,
       status: 'borrador',
       createdAt: now,
       updatedAt: now,
@@ -252,6 +255,15 @@ export class EditorStore {
       a.id === id ? { ...a, part, partFreeText: freeText, updatedAt: Date.now() } : a,
     );
     this.commit(next, 'Cambiar pieza');
+  }
+
+  setIntent(id: string, intent: AnnotationIntent): void {
+    const view = this.currentView();
+    if (!view) return;
+    const next = view.annotations.map((a) =>
+      a.id === id ? { ...a, intent, updatedAt: Date.now() } : a,
+    );
+    this.commit(next, 'Cambiar acción', `intent:${id}`);
   }
 
   setPartFreeText(id: string, freeText: string): void {
@@ -361,6 +373,20 @@ export class EditorStore {
     this.liveMessage.set(message);
   }
 
+  /**
+   * La posición de una marca, medida contra el CONTORNO de la prenda y no contra la foto.
+   * Único punto que conoce el contorno y el alto declarado, para que las tres superficies
+   * (tarjeta, JSON y prompt) no puedan discrepar.
+   */
+  spatialOf(id: string): SpatialDescriptor | null {
+    const g = this.geometryOf(id);
+    if (!g) return null;
+    return deriveSpatial(anchorOf(g), this.viewId(), {
+      garmentBox: this.image()?.garmentBox ?? null,
+      heightCm: this.projectSignal()?.garmentHeightCm ?? null,
+    });
+  }
+
   /** Caja envolvente de una anotación en espacio de contenido, para encuadrarla. */
   contentBoxOf(id: string): Box | null {
     const a = this.annotations().find((x) => x.id === id);
@@ -445,6 +471,13 @@ export class EditorStore {
     if (!p) return;
     this.dirty = true;
     this.projectSignal.set({ ...p, reference, updatedAt: Date.now() });
+  }
+
+  setGarmentHeightCm(value: number | null): void {
+    const p = this.projectSignal();
+    if (!p) return;
+    this.dirty = true;
+    this.projectSignal.set({ ...p, garmentHeightCm: value, updatedAt: Date.now() });
   }
 
   setGarmentType(garmentType: string): void {

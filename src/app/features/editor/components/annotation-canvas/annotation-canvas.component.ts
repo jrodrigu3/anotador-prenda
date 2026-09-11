@@ -18,14 +18,9 @@ import { KIND_LABELS } from '../../../../core/models/geometry.model';
 import { ObjectUrlService } from '../../../../core/media/object-url.service';
 import { ImageRepository } from '../../../../core/repositories/image.repository';
 import { partLabel } from '../../../../core/taxonomy/garment-parts';
-import { shortPosition } from '../../../../core/taxonomy/spatial-descriptor';
-import {
-  anchorOf,
-  clampNorm,
-  clientToContent,
-  fromNorm,
-  toNorm,
-} from '../../../../core/util/geometry.util';
+import { intentSummary } from '../../../../core/models/intent.model';
+import { shortPosition, SpatialDescriptor } from '../../../../core/taxonomy/spatial-descriptor';
+import { clampNorm, clientToContent, fromNorm, toNorm } from '../../../../core/util/geometry.util';
 import { EditorStore } from '../../services/editor.store';
 import { isEditableTarget } from '../../services/hit-test.util';
 import { InteractionService } from '../../services/interaction.service';
@@ -106,7 +101,7 @@ export class AnnotationCanvasComponent {
       geometry: geometryOf(a),
       number: numbers.get(a.id) ?? null,
       draft: isBlank(a),
-      aria: ariaLabel(a, numbers.get(a.id) ?? 0),
+      aria: ariaLabel(a, numbers.get(a.id) ?? 0, this.store.spatialOf(a.id)),
     }));
   });
 
@@ -337,9 +332,7 @@ export class AnnotationCanvasComponent {
     const next = clampNorm({ x: this.crosshair().x + dx, y: this.crosshair().y + dy });
     this.crosshair.set(next);
     this.interaction.keyboardMove(fromNorm(next, this.natural()));
-    this.store.announce(
-      `${Math.round(next.x * 100)} %, ${Math.round(next.y * 100)} % — ${shortPosition(next)}`,
-    );
+    this.store.announce(`${Math.round(next.x * 100)} %, ${Math.round(next.y * 100)} % de la foto`);
   }
 
   private nudgeSelection(dx: number, dy: number): void {
@@ -382,10 +375,11 @@ function translate(g: Geometry, dx: number, dy: number): Geometry {
   }
 }
 
-function ariaLabel(a: Annotation, number: number): string {
+function ariaLabel(a: Annotation, number: number, spatial: SpatialDescriptor | null): string {
   const kind = KIND_LABELS[a.kind];
-  const pos = shortPosition(anchorOf(geometryOf(a)));
+  const pos = spatial ? `, ${shortPosition(spatial)}` : '';
   const part = a.part ? `, ${partLabel(a.part, a.partFreeText)}` : '';
-  const note = a.note.trim() || 'sin nota';
-  return `Marca ${number}, ${kind}${part}, ${pos}. ${note}`;
+  const action = intentSummary(a.intent);
+  const note = [action, a.note.trim()].filter(Boolean).join('. ') || 'sin indicación';
+  return `Marca ${number}, ${kind}${part}${pos}. ${note}`;
 }

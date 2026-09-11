@@ -12,10 +12,29 @@ import { ImageRepository } from './image.repository';
 type Migrator = (doc: Record<string, unknown>) => Record<string, unknown>;
 
 const MIGRATORS: Readonly<Record<number, Migrator>> = {
-  // 1 -> 2: cuando haga falta.
+  /** v1 -> v2: acción estructurada por anotación y contorno de la prenda por vista. */
+  1: (doc) => {
+    const views = Array.isArray(doc['views']) ? (doc['views'] as Record<string, unknown>[]) : [];
+    for (const view of views) {
+      const image = view['image'] as Record<string, unknown> | null;
+      if (image && image['garmentBox'] === undefined) image['garmentBox'] = null;
+      const annotations = Array.isArray(view['annotations'])
+        ? (view['annotations'] as Record<string, unknown>[])
+        : [];
+      for (const a of annotations) {
+        if (a['intent'] === undefined) a['intent'] = { kind: 'libre' };
+      }
+    }
+    if (doc['garmentHeightCm'] === undefined) doc['garmentHeightCm'] = null;
+    return doc;
+  },
 };
 
-function migrate(raw: Project): Project {
+/**
+ * Se exporta para poder probarla: es el único código que toca datos que YA existen en el
+ * navegador de alguien, y romperlo significa perder trabajo ajeno.
+ */
+export function migrateProjectDocument(raw: Project): Project {
   let doc = raw as unknown as Record<string, unknown>;
   let version = typeof doc['schemaVersion'] === 'number' ? (doc['schemaVersion'] as number) : 0;
   while (version < SCHEMA_VERSION) {
@@ -36,14 +55,14 @@ export class ProjectRepository {
   async list(): Promise<readonly Project[]> {
     const db = await this.dbService.db();
     const all = await db.getAllFromIndex('projects', 'by-updatedAt');
-    return all.map(migrate).reverse(); // más recientes primero
+    return all.map(migrateProjectDocument).reverse(); // más recientes primero
   }
 
   async get(id: string): Promise<Project | null> {
     const db = await this.dbService.db();
     const raw = await db.get('projects', id);
     if (!raw) return null;
-    const migrated = migrate(raw);
+    const migrated = migrateProjectDocument(raw);
     if (migrated.schemaVersion !== raw.schemaVersion) await db.put('projects', migrated);
     return migrated;
   }

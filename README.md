@@ -82,6 +82,31 @@ declarando **DISCREPANCIA** si no cuadran. Más tres reglas duras: no inventar m
 medidas ni materiales**, y mandar a «Dudas» toda indicación ilegible o de relleno en vez de
 interpretarla.
 
+### Qué hacer, como dato
+
+Cada marca lleva una **acción estructurada** además de la nota libre: cambiar color, cambiar
+medida, mover, cambiar forma o borde, cambiar costura, material, acabado, añadir, quitar. Según la
+que elijas aparecen sus campos —el color pide muestra, nombre y **código de industria** (14-4112
+TCX) y sobre qué se aplica (tejido, hilo, botón, ribete…); la medida pide operación, dimensión,
+cantidad y unidad—. De ahí sale una **frase canónica** («Cambiar el color del tejido a Celeste 1 ·
+14-4112 TCX (#7ec8e3)») que viaja a la IA y al taller sin margen de interpretación.
+
+La nota libre no desaparece: viaja como **matiz** («solo este bolsillo, el otro se queda»). El
+prompt le dice al modelo que la acción es la orden, el matiz la acota, y que si se contradicen lo
+declare en vez de elegir en silencio. Una acción a medio rellenar se avisa en la tarjeta y antes de
+exportar.
+
+### Dónde cae la marca
+
+La posición se mide contra el **contorno de la prenda**, no contra el encuadre de la foto. El
+contorno se detecta al importar (fondo liso, que es como se fotografían los planos) y, si la
+detección no es plausible, se cae a la foto entera **diciéndolo** en vez de acertar por casualidad.
+
+Eso convierte «tercio medio · celda C2 de una rejilla 5×5» —que se desplaza en cuanto la prenda no
+llena el encuadre, y que además no significa nada en un taller— en «pecho · entre el centro
+delantero y el costado · 29 % alto / 30 % del eje». Y si declaras el **alto real de la prenda**, en
+«≈ 20,9 cm del borde superior», que ya es una medida que alguien puede ejecutar.
+
 ### Dos organizaciones del encargo
 
 | | Cuándo |

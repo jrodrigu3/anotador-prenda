@@ -1,8 +1,12 @@
 import { Geometry } from './geometry.model';
+import { AnnotationIntent } from './intent.model';
 import { GarmentPartId } from '../taxonomy/garment-parts';
 
-/** Versión del DOCUMENTO de proyecto. No confundir con la versión del layout de IndexedDB. */
-export const SCHEMA_VERSION = 1;
+/**
+ * Versión del DOCUMENTO de proyecto. No confundir con la versión del layout de IndexedDB.
+ * v2 añade `intent` (la acción estructurada) y el contorno de la prenda en `ImageRef`.
+ */
+export const SCHEMA_VERSION = 2;
 
 /**
  * Una marca borrador (sin nota) se puede dibujar y se ve en gris, pero el exportador
@@ -19,6 +23,8 @@ export interface AnnotationMeta {
   readonly note: string;
   /** Pieza de la prenda. Es uno de los tres canales que desambiguan para la IA. */
   readonly part: GarmentPartId | null;
+  /** QUÉ hay que hacer aquí, como dato. La nota libre lo matiza, no lo sustituye. */
+  readonly intent: AnnotationIntent;
   /** Solo cuando `part === 'otro'`. */
   readonly partFreeText: string;
   readonly status: AnnotationStatus;

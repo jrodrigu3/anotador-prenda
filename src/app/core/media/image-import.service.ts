@@ -3,6 +3,7 @@ import { ImageRecord } from '../db/db.schema';
 import { ImageRef } from '../models/project.model';
 import { ImageRepository } from '../repositories/image.repository';
 import { newId } from '../util/id.util';
+import { detectGarmentBox } from './garment-box';
 
 /**
  * Tope de lado largo al importar. Dos motivos:
@@ -52,7 +53,7 @@ export class ImageImportService {
     const height = Math.max(1, Math.round(source.height * k));
 
     const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
     if (!ctx) throw new ImageImportError('El navegador no permite crear un lienzo 2D.');
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, width, height);
@@ -62,6 +63,10 @@ export class ImageImportService {
     source.close();
 
     assertNotBlank(ctx, width, height);
+
+    // Se detecta una sola vez, aquí: a partir de ahora toda posición se mide contra la
+    // prenda y no contra el encuadre de la foto.
+    const garmentBox = detectGarmentBox(ctx, width, height);
 
     // PNG solo si la imagen es un plano/flat vectorial: pocos colores, líneas duras. Para
     // una foto, PNG multiplica el peso por diez sin ganar nada.
@@ -93,6 +98,7 @@ export class ImageImportService {
       byteSize: blob.size,
       naturalWidth: width,
       naturalHeight: height,
+      garmentBox,
     };
   }
 }
